@@ -136,7 +136,7 @@ const Modal: React.FC<ModalProps> = ({ feature, onClose, onOpenSignatureEditor }
                             <div className="mb-4 space-y-3">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">File Tanda Tangan (.png, .jpg)</label>
-                                    <input type="file" name="signature_image" className="w-full text-sm text-slate-50 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" required accept="image/png, image/jpeg"/>
+                                    <input type="file" name="signature_image" className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" required accept="image/png, image/jpeg"/>
                                 </div>
                             </div>
                         )}
