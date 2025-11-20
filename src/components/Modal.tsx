@@ -5,6 +5,9 @@ type ModalProps = {
     feature: Feature;
     onClose: () => void;
     onOpenSignatureEditor?: (pdfFile: File, imageFile: File) => void;
+    onOpenArrangeEditor?: (pdfFile: File) => void;
+    onOpenSplitEditor?: (pdfFile: File) => void;
+    onOpenScanEditor?: (images: File[]) => void;
 };
 
 const API_BASE_URL = "https://63b9ae67068f.ngrok-free.app";
@@ -21,16 +24,56 @@ const downloadFile = (blob: Blob, filename: string) => {
     document.body.removeChild(a);
 };
 
-const Modal: React.FC<ModalProps> = ({ feature, onClose, onOpenSignatureEditor }) => {
+const Modal: React.FC<ModalProps> = ({ feature, onClose, onOpenSignatureEditor, onOpenArrangeEditor, onOpenSplitEditor, onOpenScanEditor }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (event.target.files) {
+            setSelectedFiles(Array.from(event.target.files));
+        }
+    };
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setIsLoading(true);
         setError(null);
 
-        const formData = new FormData(event.currentTarget);
+        const form = event.currentTarget;
+        const formData = new FormData(form);
+
+        if (feature.needs === 'multiple-files') {
+            const file1 = formData.get('file1') as File;
+            const file2 = formData.get('file2') as File;
+            
+            formData.delete('file1');
+            formData.delete('file2');
+
+            if (!file1 || file1.size === 0 || !file2 || file2.size === 0) {
+                setError('Harap unggah kedua file PDF.');
+                setIsLoading(false);
+                return;
+            }
+            formData.append('files', file1);
+            formData.append('files', file2);
+        }
+        
+        if (feature.needs === 'image-multi-upload' && onOpenScanEditor) {
+            if (selectedFiles.length === 0) {
+                setError('Harap pilih setidaknya satu gambar.');
+                setIsLoading(false);
+                return;
+            }
+            if (selectedFiles.length > 20) {
+                setError('Anda hanya dapat memilih maksimal 20 gambar.');
+                setIsLoading(false);
+                return;
+            }
+            onOpenScanEditor(selectedFiles);
+            return;
+        }
+
 
         if (feature.api === 'add-signature' && onOpenSignatureEditor) {
             const pdfFile = formData.get('file') as File;
@@ -48,6 +91,28 @@ const Modal: React.FC<ModalProps> = ({ feature, onClose, onOpenSignatureEditor }
             }
 
             onOpenSignatureEditor(pdfFile, signatureImageFile);
+            return;
+        }
+
+        if (feature.api === 'arrange-pages' && onOpenArrangeEditor) {
+            const pdfFile = formData.get('file') as File;
+            if (!pdfFile || pdfFile.size === 0) {
+                setError('Harap unggah file PDF.');
+                setIsLoading(false);
+                return;
+            }
+            onOpenArrangeEditor(pdfFile);
+            return;
+        }
+
+        if (feature.api === 'split' && onOpenSplitEditor) {
+            const pdfFile = formData.get('file') as File;
+            if (!pdfFile || pdfFile.size === 0) {
+                setError('Harap unggah file PDF.');
+                setIsLoading(false);
+                return;
+            }
+            onOpenSplitEditor(pdfFile);
             return;
         }
 
@@ -99,19 +164,52 @@ const Modal: React.FC<ModalProps> = ({ feature, onClose, onOpenSignatureEditor }
                 <div className="border-t pt-4">
                     <form id="feature-form" onSubmit={handleSubmit} encType="multipart/form-data">
                         
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                {needs === 'multiple-files' ? 'Pilih File PDF' : 'File PDF Utama'}
-                            </label>
-                            <input 
-                                type="file" 
-                                name={needs === 'multiple-files' ? 'files' : 'file'}
-                                className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                                required 
-                                multiple={needs === 'multiple-files'}
-                                accept="application/pdf"
-                            />
-                        </div>
+                        {needs === 'multiple-files' ? (
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">File PDF 1</label>
+                                    <input type="file" name="file1" className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" required accept="application/pdf" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">File PDF 2</label>
+                                    <input type="file" name="file2" className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" required accept="application/pdf" />
+                                </div>
+                            </div>
+                        ) : needs === 'image-multi-upload' ? (
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Pilih Gambar (Maks. 20)</label>
+                                <input 
+                                    type="file" 
+                                    name='images'
+                                    className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                    required 
+                                    multiple
+                                    accept="image/png, image/jpeg"
+                                    onChange={handleFileChange}
+                                />
+                                {selectedFiles.length > 0 && (
+                                    <div className="mt-3 text-sm text-gray-600">
+                                        <p className="font-semibold">{selectedFiles.length} gambar dipilih:</p>
+                                        <ul className="list-disc list-inside mt-1 max-h-28 overflow-auto">
+                                            {selectedFiles.map(file => (
+                                                <li key={file.name} className="truncate">{file.name}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">File PDF Utama</label>
+                                <input 
+                                    type="file" 
+                                    name='file'
+                                    className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                    required 
+                                    accept="application/pdf"
+                                />
+                            </div>
+                        )}
 
                         {needs === 'password' && (
                             <div className="mb-4">
@@ -160,7 +258,7 @@ const Modal: React.FC<ModalProps> = ({ feature, onClose, onOpenSignatureEditor }
 
                         <div className="mt-6 text-right">
                             <button type="submit" disabled={isLoading} className="bg-blue-600 text-white font-bold py-2 px-6 rounded hover:bg-blue-700 disabled:bg-blue-300">
-                                {isLoading ? 'Memproses...' : (feature.api === 'add-signature' ? 'Lanjutkan ke Editor' : 'Proses')}
+                                {isLoading ? 'Memproses...' : (['add-signature', 'arrange-pages', 'split', 'scan'].includes(feature.api) ? 'Lanjutkan ke Editor' : 'Proses')}
                             </button>
                         </div>
                     </form>
