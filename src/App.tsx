@@ -110,7 +110,44 @@ function App() {
     };
 
     const handleSaveArrange = async (payload: { newPageOrder: number[], rotations: Record<number, number> }) => {
-        // ... (existing arrange handling logic)
+        if (!arrangePdfFile) {
+            alert("File PDF tidak ditemukan.");
+            return;
+        }
+
+        const { newPageOrder, rotations } = payload;
+        const formData = new FormData();
+        formData.append('file', arrangePdfFile);
+        formData.append('new_order', newPageOrder.join(','));
+        formData.append('rotations', JSON.stringify(rotations));
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/arrange-pages`, {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!response.ok) {
+                throw new Error(`Server error: ${response.status}`);
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = `arranged_${arrangePdfFile.name}`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+        } catch (error) {
+            console.error("Failed to arrange PDF:", error);
+            alert(`Gagal mengatur PDF: ${error instanceof Error ? error.message : "Unknown error"}`);
+        } finally {
+            closeArrangeEditor();
+        }
     };
 
     const handleSplitPdf = async (selectedPages: number[]) => {
