@@ -21,8 +21,6 @@
 
 ## 🖼️ Preview
 
-*(Silakan ganti gambar ini dengan screenshot aplikasi kamu nanti)*
-
 <div align="center">
   <img src="https://github.com/YeQiu29/frontend-convert-pdf-reactjs/blob/main/public/web-react-convert-pdf.png" />
 </div>
