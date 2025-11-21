@@ -102,4 +102,4 @@ Kontribusi sangat diterima! Jika kamu ingin menambahkan fitur atau memperbaiki b
 4. Push ke branch (git push origin fitur-keren).
 5. Buat Pull Request.
 
-<div align="center"> <p> Created with ❤️ using <b>React + Vite</b> by <a href="https://www.google.com/search?q=https://github.com/YeQiu29"><b>Dennis Putra Hilmansyah</b></a> </p> </div>
+<div align="center"> <p> Created with ❤️ using <b>React + Vite</b> by <a href="https://github.com/YeQiu29"><b>Dennis Putra Hilmansyah</b></a> </p> </div>
