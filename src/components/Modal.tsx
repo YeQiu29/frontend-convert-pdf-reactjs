@@ -10,7 +10,7 @@ type ModalProps = {
     onOpenScanEditor?: (images: File[]) => void;
 };
 
-const API_BASE_URL = "https://63b9ae67068f.ngrok-free.app";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const downloadFile = (blob: Blob, filename: string) => {
     const url = window.URL.createObjectURL(blob);

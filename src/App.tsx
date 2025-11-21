@@ -22,7 +22,7 @@ const features: Feature[] = [
     { api: "delete-pages", needs: "text", textLabel: "Halaman Hapus (cth: 2-5)", icon: "🗑️", title: "Hapus Halaman", description: "Hapus halaman tertentu" },
 ];
 
-const API_BASE_URL = 'https://63b9ae67068f.ngrok-free.app';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function App() {
     const [modalOpen, setModalOpen] = useState(false);
